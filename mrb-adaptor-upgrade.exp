@@ -1,0 +1,51 @@
+#!/usr/bin/expect -f
+set ipaddr [lindex $argv 0]
+set adaptorinstaller [lindex $argv 1]
+
+set prompt {# $}    ; # this is a regular expression that should match the
+                       # *end* of you bash prompt. Alter it as required.
+set timeout 60
+#spawn $env(SHELL) 
+spawn ssh -i mrb-ms-key root@$ipaddr 
+expect -re "$prompt"
+send -- "logger -t SCRIPT Performing remote upgrade of adaptor to $adaptorinstaller \r"
+expect -re "$prompt"
+send -- "\\ls /opt/dialogic  \r"
+expect -re "$prompt"
+regexp {(...1.*?)\r} "$expect_out(buffer)" tmp jredir
+send -- "echo $jredir \r"
+expect -re "$prompt"
+send -- "service adaptor stop\r"
+expect -re "$prompt"
+send -- "/opt/adaptor/uninstall-adaptor.sh\r"
+expect -re "$prompt"
+send -- "java -jar $adaptorinstaller\r"
+expect -exact "java -jar $adaptorinstaller\r
+* Press 1 if you would like to install the Media Resource Broker \r
+* Press 2 if you would like to install the MRB Adaptor \r
+"
+send -- "2\r"
+expect -exact "2\r
+Please enter the location of your Java JRE install that will be used to run the MRB \[/usr/bin/java\]\r
+"
+send -- "/opt/dialogic/$jredir/bin/java\r"
+expect -re ".*Please enter your IP Address that the MRB JMX Server will listen on .*.\r"
+send -- "$ipaddr\r"
+expect "press 1 to accept, 2 to reject, 3 to redisplay\r"
+send -- "1\r"
+expect -re ".*Select target path .* \r"
+send -- "\r"
+expect "press 1 to continue, 2 to quit, 3 to redisplay\r"
+send -- "1\r"
+expect "ress 1 to continue, 2 to quit, 3 to redisplay\r"
+send -- "1\r"
+expect -re ".* Console installation done .*\r"
+expect -re "$prompt"
+send -- "service adaptor start\r"
+expect  "service adaptor start\r"
+expect -re "$prompt"
+send -- "logger -t SCRIPT Remote upgrade to $adaptorinstaller complete! \r"
+expect -re "$prompt"
+send -- "exit\r"
+expect "logout\r"
+expect eof
