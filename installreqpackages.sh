@@ -40,18 +40,6 @@ done
 
 echo "MRB w/ Proxy enabled packages"
 
-#zlib-devel
-#openssl-devel
-#pcre-devel
-#libcurl-devel
-#xmlrpc-c
-#xmlrpc-c-devel
-#iptables-devel
-#gcc
-#hiredis
-#hiredis-devel
-#kernel-devel
-
 PACKAGELIST="epel-release glib2-devel glibc-devel zlib-devel openssl-devel pcre-devel libcurl-devel xmlrpc-c xmlrpc-c-devel iptables-devel gcc kernel-devel hiredis hiredis-devel"
 for PACKAGE in $PACKAGELIST
 do
@@ -60,4 +48,9 @@ do
 	next;
 done
 
+step "Updating the kernel via yum"
+yum -y update kernel &>> $LOG
+next
+echo "Note- kernel update requires a system restart"
+echo
 echo "Process complete, see $LOG for details"
