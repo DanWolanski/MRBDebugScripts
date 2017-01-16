@@ -1,19 +1,31 @@
 # Script to setup network and hostname
 
 # Defines
-myHostName="twc-temp"
+myHostName="MRB1-DMW"
 #myHostName="mrf1-mrb-01"
 myDomainName="tss.dialogic.com"
 #myDomainName=".ims.eng.rr.com"
-OAMDEV="enp0s3"
+
+#This is the defice that is used for the OAM Connect
+OAMDEV="enp0s10"
 #OAMDEV="eth0"
-OAMIP="10.20.123.85"
+OAMIP="10.20.123.2"
+
+#This is the Interface used to communciate between the MRB
 SIGINTDEV="enp0s8"
 #SIGINTDEV="eth1"
-SIGINTIP="10.20.123.97"
+SIGINTIP="10.20.123.151"
+
+# This is the Interface used to communciate back to the cluster (ie talking
+# to XMS so should be used for MetaCtrl and SIP with XMS
 CLUSTERDEV="enp0s9"
 #CLUSTERDEV="eth2"
-CLUSTERIP="10.20.123.103"
+CLUSTERIP="10.20.123.152"
+
+#this will ee
+VIPDEV="enp0s3"
+#CLUSTERDEV="eth2"
+VIPIP="10.20.123.150"
 
 GatewayIP="10.20.123.250"
 DNS1="10.20.106.1"
@@ -46,10 +58,11 @@ sed -e 's/# Interface.*/# Interface CLUSTER/g' -e "s/${SIGINTDEV}/${CLUSTERDEV}/
 # however, based on the finial sed there may be some
 cat << __EOF > /etc/hosts
 127.0.0.1   ${myHostName} localhost
-::1	    ${myHostName} localhost
+::1         ${myHostName} localhost
 ${OAMIP}    ${myHostName}-oam.${myDomainName} ${myHostName}-oam
 ${SIGINTIP}    ${myHostName}-sigint.${myDomainName}    ${myHostName}-sigint
 ${CLUSTERIP}   ${myHostName}-cluster.${myDomainName}   ${myHostName}-cluster
+${VIPIP}   ${myHostName}-vip.${myDomainName}   ${myHostName}-vip
 __EOF
 
 #updating the hostname to BASE adress
@@ -62,11 +75,12 @@ sed -e "/^DNS1=/s/=.*/=${DNS1}/" -e "/^DNS2=/s/=.*/=${DNS2}/" -i /etc/sysconfig/
 #setup the rp_filter on the interfaces
 cat <<__EOF > /etc/sysctl.conf
 # Setting up the rp_filter for the interfaces
-net.ipv4.conf.all.rp_filter = 0 
-net.ipv4.conf.default.rp_filter = 0 
+net.ipv4.conf.all.rp_filter = 0
+net.ipv4.conf.default.rp_filter = 0
 net.ipv4.conf.${OAMDEV}.rp_filter = 0
 net.ipv4.conf.${SIGINTDEV}.rp_filter = 0
 net.ipv4.conf.${CLUSTERDEV}.rp_filter = 0
+net.ipv4.conf.${VIPDEV}.rp_filter = 0
 __EOF
 
 sysctl -f /etc/sysctl.conf &> /dev/null
