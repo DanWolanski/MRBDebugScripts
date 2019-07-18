@@ -6,7 +6,7 @@ echo "MRB PID=$MRBPS"
 for PORT in 8181 5060
 do
   echo "AS->MRB (${PORT}):"
-  ASLIST=$(ss -np | grep $PORT | cut -c67-90 | cut -f 1 -d':' | sort -u)
+  ASLIST=$(ss -np | grep $PORT | sed -e's/  */ /g' | cut -d" " -f6 | cut -d":" -f 1 | sort -u)
   for AS in $ASLIST
   do
     echo "  $AS->MRB: $(ss -np | grep ${MRBPS} | grep ":${PORT} " | grep "${AS}" | wc -l)"
